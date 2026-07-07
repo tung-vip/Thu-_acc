@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trang Quản Trị - Đăng Bán Acc</title>
+    <meta charset="utf-8">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f9; }
+        .form-container { background: white; padding: 20px; max-width: 450px; margin: auto; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        h2 { text-align: center; color: #333; }
+        .list-container { background: white; padding: 20px; max-width: 600px; margin: 30px auto auto auto; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+        th { background-color: #f2f2f2; }
+        .btn-xoa { background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-xoa:hover { background-color: #c82333; }
+        .img-thumb { width: 60px; height: auto; border-radius: 4px; max-height: 50px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>🎮 ĐĂNG BÁN ACC GAME</h2>
+        
+        <label><b>Chọn tựa game:</b></label>
+        <select id="gameType">
+            <option value="LienQuan">Liên Quân Mobile</option>
+            <option value="FreeFire">Free Fire</option>
+            <option value="DotKich">Đột Kích</option>
+        </select>
+
+        <label><b>Mã số Acc (Ví dụ: MS01, MS02):</b></label>
+        <input type="text" id="accId" placeholder="Nhập mã số để quản lý">
+
+        <label><b>Giá tiền (VNĐ):</b></label>
+        <input type="number" id="accPrice" placeholder="Ví dụ: 150000">
+
+        <label><b>Link ảnh kho đồ (Lấy từ ImgBB):</b></label>
+        <input type="text" id="accImage" placeholder="Dán link trực tiếp đuôi .jpg hoặc .png">
+
+        <label><b>Mô tả chi tiết skin/tướng:</b></label>
+        <textarea id="accDesc" rows="3" placeholder="Ví dụ: Full tướng, 50 skin, có skin SSS..."></textarea>
+
+        <hr style="border: 0.5px dashed #ccc; margin-bottom: 15px;">
+        <p style="color: red; font-size: 13px; margin: 0 0 10px 0;">* Phần dưới này để hệ thống tự giao acc (Khách mua mới nhìn thấy):</p>
+
+        <label><b>Tài khoản gốc của Acc game:</b></label>
+        <input type="text" id="gameUser" placeholder="Tên đăng nhập nick game">
+
+        <label><b>Mật khẩu gốc của Acc game:</b></label>
+        <input type="text" id="gamePass" placeholder="Mật khẩu nick game">
+
+        <button type="button" onclick="dangBanAcc()">🚀 Đăng Bán Ngay</button>
+    </div>
+
+    <div class="list-container">
+        <h3 style="text-align: center; color: #333; margin-top: 0;">🛠️ DANH SÁCH ACC ĐANG TRÊN HỆ THỐNG</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Mã số</th>
+                    <th>Giá</th>
+                    <th>Ảnh</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="danhSachAccAdmin"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg7_Scc7LfX_VU8XMgi3HZgLnaqJ3pCCc",
+            authDomain: "shopaccphutung.firebaseapp.com",
+            databaseURL: "https://shopaccphutung-default-rtdb.firebaseio.com/",
+            projectId: "shopaccphutung",
+            storageBucket: "shopaccphutung.firebasestorage.app",
+            messagingSenderId: "532627354661",
+            appId: "1:532627354661:web:fa6c9db6c293aaef6fbbcc",
+            measurementId: "G-WEYD2C922V"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        taiDanhSachAcc();
+
+        function dangBanAcc() {
+            const game = document.getElementById("gameType").value;
+            const id = document.getElementById("accId").value.trim().toUpperCase(); 
+            const price = document.getElementById("accPrice").value;
+            const img = document.getElementById("accImage").value.trim();
+            const desc = document.getElementById("accDesc").value;
+            const gUser = document.getElementById("gameUser").value;
+            const gPass = document.getElementById("gamePass").value;
+
+            if(!id || !price || !img || !gUser || !gPass) {
+                alert("Vui lòng điền đầy đủ thông tin!");
+                return;
+            }
+
+            database.ref('Products/' + game + '/' + id).set({
+                maSo: id,
+                giaTien: parseInt(price),
+                hinhAnh: img,
+                moTa: desc,
+                taiKhoanGame: gUser,
+                matKhauGame: gPass,
+                trangThai: "ConHang" 
+            }, function(error) {
+                if (error) {
+                    alert("Thất bại: " + error.message);
+                } else {
+                    alert("🎉 Đăng thành công!");
+                    document.getElementById("accId").value = "";
+                    document.getElementById("accPrice").value = "";
+                    document.getElementById("accImage").value = "";
+                    document.getElementById("accDesc").value = "";
+                    document.getElementById("gameUser").value = "";
+                    document.getElementById("gamePass").value = "";
+                }
+            });
+        }
+
+        function taiDanhSachAcc() {
+            database.ref('Products').on('value', function(snapshot) {
+                const tbody = document.getElementById("danhSachAccAdmin");
+                tbody.innerHTML = ""; 
+                
+                if(!snapshot.exists()) {
+                    tbody.innerHTML = `<tr><td colspan="5">Chưa có acc nào.</td></tr>`;
+                    return;
+                }
+
+                snapshot.forEach(function(gameSnapshot) {
+                    const gameName = gameSnapshot.key;
+                    gameSnapshot.forEach(function(accSnapshot) {
+                        const accData = accSnapshot.val();
+                        const accId = accSnapshot.key;
+                        let tenGameDoc = gameName === "LienQuan" ? "Liên Quân" : (gameName === "FreeFire" ? "Free Fire" : "Đột Kích");
+
+                        const row = `
+                            <tr>
+                                <td><b>${tenGameDoc}</b></td>
+                                <td style="color: blue; font-weight: bold;">${accData.maSo}</td>
+                                <td style="color: green; font-weight: bold;">${accData.giaTien.toLocaleString('vi-VN')}đ</td>
+                                <td><img class="img-thumb" src="${accData.hinhAnh}" onerror="this.src='https://placehold.co/60x40?text=Lỗi+Ảnh'"></td>
+                                <td><button class="btn-xoa" onclick="xoaAcc('${gameName}', '${accId}')">Xóa</button></td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                });
+            });
+        }
+
+        function xoaAcc(game, id) {
+            if(confirm("Xóa acc " + id + "?")) {
+                database.ref('Products/' + game + '/' + id).remove()
+                .then(function() { alert("🗑️ Đã xóa!"); })
+                .catch(function(error) { alert("Lỗi: " + error.message); });
+            }
+        }
+    </script>
+</body>
+  </html>
+  
