@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Đăng Nhập</title>
+    <meta charset="utf-8">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body style="padding: 20px; font-family: Arial, sans-serif;">
+
+    <h2>🔑 ĐĂNG NHẬP HỆ THỐNG</h2>
+    
+    <label>Tên tài khoản:</label><br>
+    <input type="text" id="username" style="padding: 8px; width: 250px; margin-bottom: 10px;"><br>
+
+    <label>Mật khẩu:</label><br>
+    <input type="password" id="password" style="padding: 8px; width: 250px; margin-bottom: 15px;"><br>
+
+    <button type="button" onclick="xuLyDangNhap()" style="padding: 10px 20px; background-color: blue; color: white; border: none; cursor: pointer;">Đăng Nhập</button>
+    
+    <p>Chưa có tài khoản? <a href="dangky.html">Đăng ký tại đây</a></p>
+
+    <script>
+        // Mã cấu hình Firebase thật của Tùng đã được sửa chuẩn:
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg7_Scc7LfX_VU8XMgi3HZgLnaqJ3pCCc",
+            authDomain: "shopaccphutung.firebaseapp.com",
+            databaseURL: "https://shopaccphutung-default-rtdb.firebaseio.com/", // Thầy đã thêm dòng này cho em
+            projectId: "shopaccphutung",
+            storageBucket: "shopaccphutung.firebasestorage.app",
+            messagingSenderId: "532627354661",
+            appId: "1:532627354661:web:fa6c9db6c293aaef6fbbcc",
+            measurementId: "G-WEYD2C922V"
+        };
+        
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Hàm xử lý Đăng Nhập
+        function xuLyDangNhap() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+
+            if(user == "" || pass == "") {
+                alert("Vui lòng nhập đủ tài khoản và mật khẩu!");
+                return;
+            }
+
+            // Vào Firebase tìm tài khoản
+            database.ref('Users/' + user).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    // Kiểm tra mật khẩu
+                    if(data.matKhau === pass) {
+                        alert("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
+                        window.location.href = "index.html"; // Về trang chủ
+                    } else {
+                        alert("Sai mật khẩu rồi bạn ơi, nhập lại nha!");
+                    }
+                } else {
+                    alert("Tài khoản này không tồn tại trên hệ thống!");
+                }
+            }).catch((error) => {
+                alert("Lỗi kết nối Firebase: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
