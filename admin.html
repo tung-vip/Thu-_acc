@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trang Quản Trị - Đăng Bán Acc</title>
+    <meta charset="utf-8">
+    <!-- Nhúng thư viện Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f9; }
+        .form-container { background: white; padding: 20px; max-width: 400px; margin: auto; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        h2 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>🎮 ĐĂNG BÁN ACC GAME</h2>
+        
+        <label><b>Chọn tựa game:</b></label>
+        <select id="gameType">
+            <option value="LienQuan">Liên Quân Mobile</option>
+            <option value="FreeFire">Free Fire</option>
+            <option value="DotKich">Đột Kích</option>
+        </select>
+
+        <label><b>Mã số Acc (Ví dụ: MS01, MS02):</b></label>
+        <input type="text" id="accId" placeholder="Nhập mã số để quản lý">
+
+        <label><b>Giá tiền (VNĐ):</b></label>
+        <input type="number" id="accPrice" placeholder="Ví dụ: 150000">
+
+        <label><b>Link ảnh kho đồ (Lấy từ ImgBB):</b></label>
+        <input type="text" id="accImage" placeholder="Dán link trực tiếp đuôi .jpg hoặc .png">
+
+        <label><b>Mô tả chi tiết skin/tướng:</b></label>
+        <textarea id="accDesc" rows="3" placeholder="Ví dụ: Full tướng, 50 skin, có skin SSS..."></textarea>
+
+        <hr style="border: 0.5px dashed #ccc; margin-bottom: 15px;">
+        <p style="color: red; font-size: 13px; margin: 0 0 10px 0;">* Phần dưới này để hệ thống tự giao acc (Khách mua mới nhìn thấy):</p>
+
+        <label><b>Tài khoản gốc của Acc game:</b></label>
+        <input type="text" id="gameUser" placeholder="Tên đăng nhập nick game">
+
+        <label><b>Mật khẩu gốc của Acc game:</b></label>
+        <input type="text" id="gamePass" placeholder="Mật khẩu nick game">
+
+        <button type="button" onclick="dangBanAcc()">🚀 Đăng Bán Ngay</button>
+    </div>
+
+    <script>
+        // Cấu hình Firebase chuẩn của Tùng
+        const firebaseConfig = {
+            apiKey: "AIzaSyDg7_Scc7LfX_VU8XMgi3HZgLnaqJ3pCCc",
+            authDomain: "shopaccphutung.firebaseapp.com",
+            databaseURL: "https://shopaccphutung-default-rtdb.firebaseio.com/",
+            projectId: "shopaccphutung",
+            storageBucket: "shopaccphutung.firebasestorage.app",
+            messagingSenderId: "532627354661",
+            appId: "1:532627354661:web:fa6c9db6c293aaef6fbbcc",
+            measurementId: "G-WEYD2C922V"
+        };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Hàm xử lý khi Phú bấm Đăng Bán
+        function dangBanAcc() {
+            const game = document.getElementById("gameType").value;
+            const id = document.getElementById("accId").value.trim().toUpperCase(); // Biến chữ thường thành hoa cho đẹp
+            const price = document.getElementById("accPrice").value;
+            const img = document.getElementById("accImage").value;
+            const desc = document.getElementById("accDesc").value;
+            const gUser = document.getElementById("gameUser").value;
+            const gPass = document.getElementById("gamePass").value;
+
+            // Kiểm tra xem nhập đủ thông tin chưa
+            if(!id || !price || !img || !gUser || !gPass) {
+                alert("Vui lòng điền đầy đủ thông tin (đặc biệt là giá, ảnh và tài khoản game)!");
+                return;
+            }
+
+            // Đẩy dữ liệu lên thư mục "Products" trên Firebase theo dạng: Products -> Tên Game -> Mã Số Acc
+            database.ref('Products/' + game + '/' + id).set({
+                maSo: id,
+                giaTien: parseInt(price),
+                hinhAnh: img,
+                moTa: desc,
+                taiKhoanGame: gUser,
+                matKhauGame: gPass,
+                trangThai: "ConHang" // Mặc định là còn hàng để khách mua
+            }, function(error) {
+                if (error) {
+                    alert("Đăng acc thất bại rồi, kiểm tra lại mạng nha: " + error.message);
+                } else {
+                    alert("🎉 Quá dữ! Acc " + id + " của game " + game + " đã được đăng bán thành công lên Firebase!");
+                    // Đăng xong tự reset ô nhập để đăng acc tiếp theo
+                    document.getElementById("accId").value = "";
+                    document.getElementById("accPrice").value = "";
+                    document.getElementById("accImage").value = "";
+                    document.getElementById("accDesc").value = "";
+                    document.getElementById("gameUser").value = "";
+                    document.getElementById("gamePass").value = "";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
